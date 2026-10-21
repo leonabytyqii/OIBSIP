@@ -1,0 +1,110 @@
+import { useState } from "react";
+import "./App.css";
+import PasswordRecovery from "./PasswordRecovery";
+import Login from "./Login";
+
+function VerifyEmail() {
+  const [token] = useState(() => {
+    return new URLSearchParams(window.location.search).get("token") || "";
+  });
+
+  const [status, setStatus] = useState("idle");
+  const [message, setMessage] = useState("");
+
+  const validToken = /^[a-f0-9]{64}$/.test(token);
+
+  async function verifyEmail() {
+    if (!validToken || status === "loading" || status === "success") {
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("");
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/auth/verify-email",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setStatus("error");
+        setMessage(data.message || "Email verification failed.");
+        return;
+      }
+
+      setStatus("success");
+      setMessage(data.message || "Email verified successfully.");
+
+      window.history.replaceState(
+        window.history.state,
+        "",
+        window.location.pathname
+      );
+    } catch {
+      setStatus("error");
+      setMessage("Unable to connect. Please try again.");
+    }
+  }
+
+  return (
+    <main className="card">
+      <h1>Pizza Delivery</h1>
+
+      <h2>
+        {status === "success" ? "Email verified" : "Verify your email"}
+      </h2>
+
+      {status !== "success" && (
+        <p>
+          {validToken
+            ? "Click the button below to confirm your email address."
+            : "Open the verification link from your email."}
+        </p>
+      )}
+
+      <button
+        type="button"
+        onClick={verifyEmail}
+        disabled={
+          !validToken || status === "loading" || status === "success"
+        }
+      >
+        {status === "loading"
+          ? "Verifying..."
+          : status === "success"
+            ? "Verified"
+            : "Verify email"}
+      </button>
+
+      {message && (
+        <p role={status === "error" ? "alert" : "status"}>
+          {message}
+        </p>
+      )}
+    </main>
+  );
+}
+export default function App() {
+  const pathname = window.location.pathname;
+  if (pathname === "/login") {
+  return <Login />;
+}
+
+  if (
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password"
+  ) {
+    return <PasswordRecovery key={pathname} />;
+  }
+
+  return <VerifyEmail />;
+}
