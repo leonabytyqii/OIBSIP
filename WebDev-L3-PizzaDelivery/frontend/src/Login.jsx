@@ -36,10 +36,30 @@ export default function Login() {
         return;
       }
 
-      setSession({
-        accessToken: data.accessToken,
-        user: data.user,
-      });
+      const profileResponse = await fetch(
+  "http://localhost:5000/api/auth/me",
+  {
+    headers: {
+      Authorization: `Bearer ${data.accessToken}`,
+    },
+    cache: "no-store",
+  }
+);
+
+const profileData = await profileResponse.json();
+
+if (!profileResponse.ok) {
+  setStatus("error");
+  setMessage(
+    profileData.message || "Unable to load your profile."
+  );
+  return;
+}
+
+setSession({
+  accessToken: data.accessToken,
+  user: profileData.user,
+});
       form.reset();
       setStatus("success");
       setMessage(data.message);
