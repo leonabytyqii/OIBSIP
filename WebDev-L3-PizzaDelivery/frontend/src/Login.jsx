@@ -125,6 +125,9 @@ setSession({
           </form>
 
           <a href="/forgot-password">Forgot password?</a>
+          <p>
+  <a href="/register">Create an account</a>
+</p>
 
           {message && <p role="alert">{message}</p>}
         </>

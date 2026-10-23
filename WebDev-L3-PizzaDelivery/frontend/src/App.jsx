@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./App.css";
 import PasswordRecovery from "./PasswordRecovery";
 import Login from "./Login";
+import Register from "./Register";
 
 function VerifyEmail() {
   const [token] = useState(() => {
@@ -97,6 +98,9 @@ export default function App() {
   const pathname = window.location.pathname;
   if (pathname === "/login") {
   return <Login />;
+}
+if (pathname === "/register") {
+  return <Register />;
 }
 
   if (
