@@ -19,6 +19,8 @@ app.use(express.json());
 
 const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
+const pizzaRoutes = require("./routes/pizzas");
+app.use("/api/pizzas", pizzaRoutes);
 
 app.get("/api/health", (req, res) => {
   const connected = mongoose.connection.readyState === 1;

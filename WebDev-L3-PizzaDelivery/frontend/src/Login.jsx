@@ -82,7 +82,11 @@ setSession({
       <h1>Pizza Delivery</h1>
 
             {session ? (
-        <Dashboard user={session.user} onLogout={logout} />
+       <Dashboard
+  user={session.user}
+  accessToken={session.accessToken}
+  onLogout={logout}
+/>
       ) : (
         <>
           <h2>Login</h2>
