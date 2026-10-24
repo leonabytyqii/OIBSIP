@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import PizzaBuilder from "./PizzaBuilder";
 export default function Dashboard({ user, accessToken, onLogout }) {
   const [pizzas, setPizzas] = useState([]);
   const [status, setStatus] = useState("loading");
@@ -125,6 +125,7 @@ export default function Dashboard({ user, accessToken, onLogout }) {
           ))}
         </div>
       )}
+      <PizzaBuilder accessToken={accessToken} onLogout={onLogout} />
     </section>
   );
 }
