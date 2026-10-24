@@ -1,9 +1,11 @@
 import { useState } from "react";
+import Dashboard from "./Dashboard";
 
 export default function Login() {
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
   const [session, setSession] = useState(null);
+  
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -79,14 +81,8 @@ setSession({
     <main className="card">
       <h1>Pizza Delivery</h1>
 
-      {session ? (
-        <>
-          <h2>Welcome, {session.user.name}!</h2>
-          <p role="status">{message}</p>
-          <button type="button" onClick={logout}>
-            Log out
-          </button>
-        </>
+            {session ? (
+        <Dashboard user={session.user} onLogout={logout} />
       ) : (
         <>
           <h2>Login</h2>

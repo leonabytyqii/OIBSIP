@@ -91,6 +91,11 @@ function VerifyEmail() {
           {message}
         </p>
       )}
+        {status === "success" && (
+        <p>
+          <a href="/login">Go to login</a>
+        </p>
+      )}
     </main>
   );
 }
@@ -99,9 +104,11 @@ export default function App() {
   if (pathname === "/login") {
   return <Login />;
 }
-if (pathname === "/register") {
-  return <Register />;
-}
+
+  if (pathname === "/register") {
+    return <Register />;
+  }
+
 
   if (
     pathname === "/forgot-password" ||
