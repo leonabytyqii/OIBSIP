@@ -27,6 +27,7 @@ const orderRoutes = require("./routes/orders");
 app.use("/api/orders", orderRoutes);
 const adminRoutes = require("./routes/admin");
 app.use("/api/admin", adminRoutes);
+const { startLowStockAlerts } = require("./jobs/lowStockAlerts");
 
 app.get("/api/health", (req, res) => {
   const connected = mongoose.connection.readyState === 1;
@@ -53,6 +54,7 @@ async function startServer() {
   });
 
   console.log("MongoDB connected");
+  startLowStockAlerts();
 
     app.listen(PORT, (error) => {
     if (error) {

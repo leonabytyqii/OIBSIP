@@ -57,6 +57,10 @@ const ingredientSchema = new mongoose.Schema(
         message: "Low stock threshold must be a whole number.",
       },
     },
+        lowStockAlertSentAt: {
+      type: Date,
+      default: null,
+    },
 
     isActive: {
       type: Boolean,
