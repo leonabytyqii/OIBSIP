@@ -1,14 +1,15 @@
 import { useState } from "react";
 import Dashboard from "./Dashboard";
+import AdminDashboard from "./AdminDashboard";
 
 export default function Login() {
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
   const [session, setSession] = useState(null);
-  
 
   async function handleSubmit(event) {
     event.preventDefault();
+
     if (status === "loading") return;
 
     const form = event.currentTarget;
@@ -22,7 +23,9 @@ export default function Login() {
         "http://localhost:5000/api/auth/login",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
             email: String(fields.get("email") || "").trim(),
             password: String(fields.get("password") || ""),
@@ -38,33 +41,53 @@ export default function Login() {
         return;
       }
 
+      if (
+        typeof data.accessToken !== "string" ||
+        !data.accessToken
+      ) {
+        setStatus("error");
+        setMessage("Invalid login response. Please try again.");
+        return;
+      }
+
       const profileResponse = await fetch(
-  "http://localhost:5000/api/auth/me",
-  {
-    headers: {
-      Authorization: `Bearer ${data.accessToken}`,
-    },
-    cache: "no-store",
-  }
-);
+        "http://localhost:5000/api/auth/me",
+        {
+          headers: {
+            Authorization: `Bearer ${data.accessToken}`,
+          },
+          cache: "no-store",
+        }
+      );
 
-const profileData = await profileResponse.json();
+      const profileData = await profileResponse.json();
 
-if (!profileResponse.ok) {
-  setStatus("error");
-  setMessage(
-    profileData.message || "Unable to load your profile."
-  );
-  return;
-}
+      if (!profileResponse.ok) {
+        setStatus("error");
+        setMessage(
+          profileData.message || "Unable to load your profile."
+        );
+        return;
+      }
 
-setSession({
-  accessToken: data.accessToken,
-  user: profileData.user,
-});
+      if (
+        !profileData.user ||
+        !["user", "admin"].includes(profileData.user.role)
+      ) {
+        setStatus("error");
+        setMessage("Invalid user profile. Please try again.");
+        return;
+      }
+
       form.reset();
+
+      setSession({
+        accessToken: data.accessToken,
+        user: profileData.user,
+      });
+
       setStatus("success");
-      setMessage(data.message);
+      setMessage("");
     } catch {
       setStatus("error");
       setMessage("Unable to connect. Please try again.");
@@ -77,61 +100,73 @@ setSession({
     setMessage("");
   }
 
+  if (session) {
+    return (
+      <main className="card">
+        <h1>Pizza Delivery</h1>
+
+        {session.user.role === "admin" ? (
+          <AdminDashboard
+            user={session.user}
+            accessToken={session.accessToken}
+            onLogout={logout}
+          />
+        ) : (
+          <Dashboard
+            user={session.user}
+            accessToken={session.accessToken}
+            onLogout={logout}
+          />
+        )}
+      </main>
+    );
+  }
+
   return (
     <main className="card">
       <h1>Pizza Delivery</h1>
+      <h2>Login</h2>
 
-            {session ? (
-       <Dashboard
-  user={session.user}
-  accessToken={session.accessToken}
-  onLogout={logout}
-/>
-      ) : (
-        <>
-          <h2>Login</h2>
+      <form
+        className="auth-form"
+        method="post"
+        onSubmit={handleSubmit}
+      >
+        <fieldset disabled={status === "loading"}>
+          <label>
+            Email
+            <input
+              type="email"
+              name="email"
+              autoComplete="email"
+              maxLength={254}
+              required
+            />
+          </label>
 
-          <form
-            className="auth-form"
-            method="post"
-            onSubmit={handleSubmit}
-          >
-            <fieldset disabled={status === "loading"}>
-              <label>
-                Email
-                <input
-                  type="email"
-                  name="email"
-                  autoComplete="email"
-                  maxLength={254}
-                  required
-                />
-              </label>
+          <label>
+            Password
+            <input
+              type="password"
+              name="password"
+              autoComplete="current-password"
+              required
+            />
+          </label>
 
-              <label>
-                Password
-                <input
-                  type="password"
-                  name="password"
-                  autoComplete="current-password"
-                  required
-                />
-              </label>
+          <button type="submit">
+            {status === "loading" ? "Logging in..." : "Login"}
+          </button>
+        </fieldset>
+      </form>
 
-              <button type="submit">
-                {status === "loading" ? "Logging in..." : "Login"}
-              </button>
-            </fieldset>
-          </form>
+      <a href="/forgot-password">Forgot password?</a>
 
-          <a href="/forgot-password">Forgot password?</a>
-          <p>
-  <a href="/register">Create an account</a>
-</p>
+      <p>
+        <a href="/register">Create an account</a>
+      </p>
 
-          {message && <p role="alert">{message}</p>}
-        </>
-      )}
+      {message && <p role="alert">{message}</p>}
     </main>
   );
 }

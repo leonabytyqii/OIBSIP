@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import OrderSummary from "./OrderSummary";
 
 const steps = [
   { category: "base", title: "Choose a pizza base" },
@@ -101,9 +102,7 @@ export default function PizzaBuilder({ accessToken, onLogout }) {
     });
   }
 
-  function getName(id) {
-    return ingredients.find((item) => item.id === id)?.name || "";
-  }
+
 
   if (status === "loading") {
     return <p role="status">Loading pizza ingredients...</p>;
@@ -132,26 +131,15 @@ export default function PizzaBuilder({ accessToken, onLogout }) {
   }
 
   if (step === steps.length) {
-    return (
-      <section className="pizza-builder">
-        <h2>Your pizza selection</h2>
-
-        <p><strong>Base:</strong> {getName(selection.base)}</p>
-        <p><strong>Sauce:</strong> {getName(selection.sauce)}</p>
-        <p><strong>Cheese:</strong> {getName(selection.cheese)}</p>
-        <p>
-          <strong>Vegetables:</strong>{" "}
-          {selection.veggie.length > 0
-            ? selection.veggie.map(getName).join(", ")
-            : "None"}
-        </p>
-
-        <button type="button" onClick={() => setStep(0)}>
-          Edit selection
-        </button>
-      </section>
-    );
-  }
+  return (
+    <OrderSummary
+      accessToken={accessToken}
+      selection={selection}
+      onEdit={() => setStep(0)}
+      onLogout={onLogout}
+    />
+  );
+}
 
   const currentStep = steps[step];
   const options = ingredients.filter(

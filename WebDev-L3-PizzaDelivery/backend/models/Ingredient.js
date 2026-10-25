@@ -24,8 +24,20 @@ const ingredientSchema = new mongoose.Schema(
       required: true,
       enum: ["base", "sauce", "cheese", "veggie", "meat"],
     },
+    
 
+    priceMinor: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 1000000,
+      validate: {
+        validator: Number.isSafeInteger,
+        message: "Price must be a whole number in minor units.",
+      },
+    },
     stock: {
+        
       type: Number,
       required: true,
       default: 0,

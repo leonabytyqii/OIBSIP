@@ -23,6 +23,10 @@ const pizzaRoutes = require("./routes/pizzas");
 app.use("/api/pizzas", pizzaRoutes);
 const ingredientRoutes = require("./routes/ingredients");
 app.use("/api/ingredients", ingredientRoutes);
+const orderRoutes = require("./routes/orders");
+app.use("/api/orders", orderRoutes);
+const adminRoutes = require("./routes/admin");
+app.use("/api/admin", adminRoutes);
 
 app.get("/api/health", (req, res) => {
   const connected = mongoose.connection.readyState === 1;

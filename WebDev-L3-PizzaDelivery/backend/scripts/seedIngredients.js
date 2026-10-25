@@ -67,6 +67,13 @@ async function seedIngredients() {
 
       await Ingredient.create({
         ...ingredient,
+        priceMinor: {
+  base: 300,
+  sauce: 50,
+  cheese: 100,
+  veggie: 50,
+}[ingredient.category],
+        
         stock: 50,
         lowStockThreshold: 20,
         isActive: true,
