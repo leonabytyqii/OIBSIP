@@ -1,8 +1,48 @@
 const express = require("express");
 const Ingredient = require("../models/Ingredient");
+const Order = require("../models/Order");
 const requireAuth = require("../middleware/requireAuth");
 
+
 const router = express.Router();
+router.get("/my", requireAuth, async (req, res) => {
+  res.set("Cache-Control", "no-store");
+
+  try {
+    const orders = await Order.find({
+      user: req.user.id,
+    })
+      .select(
+        "_id items currency totalMinor paymentStatus status createdAt paidAt"
+      )
+      .sort({ createdAt: -1, _id: -1 })
+      .limit(50)
+      .lean();
+
+    return res.status(200).json({
+      orders: orders.map((order) => ({
+        id: order._id.toString(),
+        items: order.items.map((item) => ({
+          name: item.name,
+          category: item.category,
+          priceMinor: item.priceMinor,
+        })),
+        currency: order.currency,
+        totalMinor: order.totalMinor,
+        paymentStatus: order.paymentStatus,
+        status: order.status,
+        createdAt: order.createdAt,
+        paidAt: order.paidAt,
+      })),
+    });
+  } catch (error) {
+    console.error("Load customer orders:", error.message);
+
+    return res.status(500).json({
+      message: "Unable to load your orders. Please try again.",
+    });
+  }
+});
 
 router.post("/quote", requireAuth, async (req, res) => {
   try {

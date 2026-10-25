@@ -360,3 +360,25 @@
   margin: 8px 0 0;
   font-size: 0.9rem;
 }
+.my-orders {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #777;
+}
+
+.orders-list {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.order-card {
+  padding: 20px;
+  border: 1px solid #777;
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+
+.order-card h3 {
+  margin-top: 0;
+}
