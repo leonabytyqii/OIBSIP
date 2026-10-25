@@ -91,7 +91,8 @@ function VerifyEmail() {
           {message}
         </p>
       )}
-        {status === "success" && (
+
+      {status === "success" && (
         <p>
           <a href="/login">Go to login</a>
         </p>
@@ -99,16 +100,21 @@ function VerifyEmail() {
     </main>
   );
 }
+
 export default function App() {
   const pathname = window.location.pathname;
+
+  if (pathname === "/admin/login") {
+    return <Login key="admin" adminOnly />;
+  }
+
   if (pathname === "/login") {
-  return <Login />;
-}
+    return <Login key="customer" />;
+  }
 
   if (pathname === "/register") {
     return <Register />;
   }
-
 
   if (
     pathname === "/forgot-password" ||

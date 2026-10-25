@@ -2,7 +2,7 @@ import { useState } from "react";
 import Dashboard from "./Dashboard";
 import AdminDashboard from "./AdminDashboard";
 
-export default function Login() {
+export default function Login({ adminOnly = false }) {
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
   const [session, setSession] = useState(null);
@@ -70,12 +70,27 @@ export default function Login() {
         return;
       }
 
-      if (
-        !profileData.user ||
-        !["user", "admin"].includes(profileData.user.role)
-      ) {
+      const user = profileData.user;
+
+      if (!user || !["user", "admin"].includes(user.role)) {
         setStatus("error");
         setMessage("Invalid user profile. Please try again.");
+        return;
+      }
+
+      if (adminOnly && user.role !== "admin") {
+        setStatus("error");
+        setMessage(
+          "This page is for administrators. Please use customer login."
+        );
+        return;
+      }
+
+      if (!adminOnly && user.role === "admin") {
+        setStatus("error");
+        setMessage(
+          "Please use the admin login page for this account."
+        );
         return;
       }
 
@@ -83,7 +98,7 @@ export default function Login() {
 
       setSession({
         accessToken: data.accessToken,
-        user: profileData.user,
+        user,
       });
 
       setStatus("success");
@@ -125,7 +140,12 @@ export default function Login() {
   return (
     <main className="card">
       <h1>Pizza Delivery</h1>
-      <h2>Login</h2>
+
+      <h2>{adminOnly ? "Admin login" : "Customer login"}</h2>
+
+      {adminOnly && (
+        <p>Sign in with your administrator account.</p>
+      )}
 
       <form
         className="auth-form"
@@ -138,7 +158,7 @@ export default function Login() {
             <input
               type="email"
               name="email"
-              autoComplete="email"
+              autoComplete="username"
               maxLength={254}
               required
             />
@@ -155,18 +175,36 @@ export default function Login() {
           </label>
 
           <button type="submit">
-            {status === "loading" ? "Logging in..." : "Login"}
+            {status === "loading"
+              ? "Logging in..."
+              : adminOnly
+                ? "Log in as admin"
+                : "Login"}
           </button>
         </fieldset>
       </form>
 
-      <a href="/forgot-password">Forgot password?</a>
+      {message && <p role="alert">{message}</p>}
 
       <p>
-        <a href="/register">Create an account</a>
+        <a href="/forgot-password">Forgot password?</a>
       </p>
 
-      {message && <p role="alert">{message}</p>}
+      {adminOnly ? (
+        <p>
+          <a href="/login">Go to customer login</a>
+        </p>
+      ) : (
+        <>
+          <p>
+            <a href="/register">Create an account</a>
+          </p>
+
+          <p>
+            <a href="/admin/login">Admin login</a>
+          </p>
+        </>
+      )}
     </main>
   );
 }
