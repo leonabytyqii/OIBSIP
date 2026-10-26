@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import AdminOrders from "./AdminOrders";
 
 function InventoryRow({ item, accessToken, onSaved, onAuthError }) {
   const [stock, setStock] = useState(String(item.stock));
@@ -308,7 +309,14 @@ export default function AdminDashboard({
               </table>
             </div>
           )}
-        </>
+         </>
+      )}
+
+      {status !== "blocked" && (
+        <AdminOrders
+          accessToken={accessToken}
+          onLogout={onLogout}
+        />
       )}
     </section>
   );

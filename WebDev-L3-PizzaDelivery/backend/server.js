@@ -27,6 +27,9 @@ const orderRoutes = require("./routes/orders");
 app.use("/api/orders", orderRoutes);
 const adminRoutes = require("./routes/admin");
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin/orders", require("./routes/adminOrders"));
+
+
 const { startLowStockAlerts } = require("./jobs/lowStockAlerts");
 
 app.get("/api/health", (req, res) => {
