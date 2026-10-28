@@ -74,7 +74,8 @@ cd OIBSIP/WebDev-L3-PizzaDelivery
 
 ### Backend configuration
 
-Create a file named `.env` inside `backend`.
+Copy `backend/.env.example` to `backend/.env`.
+Replace the example values with your own configuration.
 
 Add the following variables and replace the example values with
 your own configuration:
