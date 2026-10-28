@@ -3,27 +3,43 @@ import AdminOrders from "./AdminOrders";
 
 function InventoryRow({ item, accessToken, onSaved, onAuthError }) {
   const [stock, setStock] = useState(String(item.stock));
+  const [threshold, setThreshold] = useState(
+    String(item.lowStockThreshold)
+  );
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
   const saving = useRef(false);
 
-  async function saveStock(event) {
-    event.preventDefault();
-    if (saving.current) return;
+  const locked = status === "saving" || status === "conflict";
 
-    const value = stock.trim();
-    const newStock = Number(value);
+  async function saveValue(event, field) {
+    event.preventDefault();
+    if (saving.current || status === "conflict") return;
+
+    const isStock = field === "stock";
+    const value = (isStock ? stock : threshold).trim();
+    const number = Number(value);
 
     if (
       !/^\d+$/.test(value) ||
-      !Number.isSafeInteger(newStock) ||
-      newStock < 0 ||
-      newStock > 1000000
+      !Number.isSafeInteger(number) ||
+      number < 0 ||
+      number > 1000000
     ) {
       setStatus("error");
       setMessage("Enter a whole number from 0 to 1000000.");
       return;
     }
+
+    const body = isStock
+      ? {
+          stock: number,
+          expectedStock: item.stock,
+        }
+      : {
+          lowStockThreshold: number,
+          expectedThreshold: item.lowStockThreshold,
+        };
 
     saving.current = true;
     setStatus("saving");
@@ -31,17 +47,14 @@ function InventoryRow({ item, accessToken, onSaved, onAuthError }) {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/admin/ingredients/${item.id}/stock`,
+        `http://localhost:5000/api/admin/ingredients/${item.id}/${field}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
-          body: JSON.stringify({
-            stock: newStock,
-            expectedStock: item.stock,
-          }),
+          body: JSON.stringify(body),
         }
       );
 
@@ -53,29 +66,53 @@ function InventoryRow({ item, accessToken, onSaved, onAuthError }) {
       const data = await response.json();
 
       if (!response.ok) {
-        if (response.status === 409 || response.status === 404) {
-          setStatus("conflict");
-          setMessage(data.message + " Use Reload inventory.");
-          return;
-        }
-
-        throw new Error(data.message || "Unable to save stock.");
+        setStatus(
+          response.status === 400 ? "error" : "conflict"
+        );
+        setMessage(
+          response.status === 400
+            ? data.message || "Please check the entered value."
+            : `${data.message || "Unable to save."} Use Reload inventory.`
+        );
+        return;
       }
 
-      if (!data.ingredient || data.ingredient.id !== item.id) {
-        throw new Error("Unexpected response. Reload inventory.");
+      const updated = data.ingredient;
+
+      if (
+        !updated ||
+        updated.id !== item.id ||
+        !Number.isSafeInteger(updated.stock) ||
+        !Number.isSafeInteger(updated.lowStockThreshold)
+      ) {
+        throw new Error("Invalid inventory response.");
       }
 
-      onSaved(data.ingredient);
-      setStock(String(data.ingredient.stock));
+      onSaved(updated);
+
+      if (isStock) {
+        setStock(String(updated.stock));
+      } else {
+        setThreshold(String(updated.lowStockThreshold));
+      }
+
       setStatus("success");
-      setMessage("Saved.");
+      setMessage(
+        isStock ? "Stock saved." : "Alert threshold saved."
+      );
     } catch {
-      setStatus("error");
-      setMessage("Unable to confirm saving. Reload inventory to check.");
+      setStatus("conflict");
+      setMessage(
+        "Unable to confirm saving. Reload inventory to check."
+      );
     } finally {
       saving.current = false;
     }
+  }
+
+  function clearMessage() {
+    setStatus("idle");
+    setMessage("");
   }
 
   const price = new Intl.NumberFormat("de-DE", {
@@ -89,7 +126,40 @@ function InventoryRow({ item, accessToken, onSaved, onAuthError }) {
       <td>{item.category}</td>
       <td>{price}</td>
       <td>{item.stock}</td>
-      <td>{item.lowStockThreshold}</td>
+
+      <td>
+        <form
+          className="stock-form"
+          onSubmit={(event) => saveValue(event, "threshold")}
+        >
+          <input
+            type="number"
+            aria-label={`Alert threshold for ${item.name}`}
+            min="0"
+            max="1000000"
+            step="1"
+            required
+            value={threshold}
+            disabled={locked}
+            onChange={(event) => {
+              setThreshold(event.target.value);
+              clearMessage();
+            }}
+          />
+
+          <button
+            type="submit"
+            disabled={
+              locked ||
+              threshold.trim() === "" ||
+              Number(threshold) === item.lowStockThreshold
+            }
+          >
+            Save
+          </button>
+        </form>
+      </td>
+
       <td>
         {item.stock === 0
           ? "Out of stock"
@@ -97,9 +167,14 @@ function InventoryRow({ item, accessToken, onSaved, onAuthError }) {
             ? "Low stock"
             : "In stock"}
       </td>
+
       <td>{item.isActive ? "Yes" : "No"}</td>
+
       <td>
-        <form className="stock-form" onSubmit={saveStock}>
+        <form
+          className="stock-form"
+          onSubmit={(event) => saveValue(event, "stock")}
+        >
           <input
             type="number"
             aria-label={`New stock for ${item.name}`}
@@ -108,26 +183,30 @@ function InventoryRow({ item, accessToken, onSaved, onAuthError }) {
             step="1"
             required
             value={stock}
-            disabled={status === "saving" || status === "conflict"}
+            disabled={locked}
             onChange={(event) => {
               setStock(event.target.value);
-              setStatus("idle");
-              setMessage("");
+              clearMessage();
             }}
           />
 
           <button
             type="submit"
             disabled={
-              status === "saving" ||
-              status === "conflict" ||
+              locked ||
               stock.trim() === "" ||
               Number(stock) === item.stock
             }
           >
-            {status === "saving" ? "Saving..." : "Save"}
+            Save
           </button>
         </form>
+
+        {status === "saving" && (
+          <p className="stock-message" role="status">
+            Saving...
+          </p>
+        )}
 
         {message && (
           <p

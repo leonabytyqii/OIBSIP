@@ -117,5 +117,104 @@ router.patch("/ingredients/:id/stock", async (req, res) => {
     });
   }
 });
+router.patch("/ingredients/:id/threshold", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { lowStockThreshold, expectedThreshold } = req.body || {};
 
+    if (!/^[a-f0-9]{24}$/i.test(id)) {
+      return res.status(400).json({
+        message: "Invalid ingredient ID.",
+      });
+    }
+
+    if (
+      !Number.isSafeInteger(lowStockThreshold) ||
+      lowStockThreshold < 0 ||
+      lowStockThreshold > 1000000
+    ) {
+      return res.status(400).json({
+        message: "Threshold must be a whole number from 0 to 1000000.",
+      });
+    }
+
+    if (
+      !Number.isSafeInteger(expectedThreshold) ||
+      expectedThreshold < 0
+    ) {
+      return res.status(400).json({
+        message: "Please reload inventory before updating the threshold.",
+      });
+    }
+
+    const current = await Ingredient.findById(id)
+      .select("stock lowStockThreshold updatedAt")
+      .lean();
+
+    if (!current) {
+      return res.status(404).json({
+        message: "Ingredient not found.",
+      });
+    }
+
+    if (current.lowStockThreshold !== expectedThreshold) {
+      return res.status(409).json({
+        message: "Threshold changed. Reload inventory and try again.",
+      });
+    }
+
+    const changes = { lowStockThreshold };
+
+    // Allow a future alert after stock falls below the threshold again.
+    if (current.stock >= lowStockThreshold) {
+      changes.lowStockAlertSentAt = null;
+    }
+
+    const ingredient = await Ingredient.findOneAndUpdate(
+      {
+        _id: id,
+        stock: current.stock,
+        lowStockThreshold: expectedThreshold,
+        updatedAt: current.updatedAt,
+      },
+      {
+        $set: changes,
+      },
+      {
+        returnDocument: "after",
+        runValidators: true,
+      }
+    )
+      .select("name category stock lowStockThreshold priceMinor isActive")
+      .lean();
+
+    if (!ingredient) {
+      return res.status(409).json({
+        message: "Inventory changed. Reload inventory and try again.",
+      });
+    }
+
+    res.set("Cache-Control", "no-store");
+
+    return res.status(200).json({
+      message: "Alert threshold updated successfully.",
+      ingredient: {
+        id: ingredient._id.toString(),
+        name: ingredient.name,
+        category: ingredient.category,
+        stock: ingredient.stock,
+        lowStockThreshold: ingredient.lowStockThreshold,
+        priceMinor: ingredient.priceMinor,
+        isActive: ingredient.isActive,
+        lowStock: ingredient.stock < ingredient.lowStockThreshold,
+      },
+    });
+  } catch (error) {
+    console.error("Threshold update:", error.message);
+
+    return res.status(500).json({
+      message: "Unable to update the threshold. Please try again.",
+    });
+  }
+});
 module.exports = router;
