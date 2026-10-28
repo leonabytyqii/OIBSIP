@@ -28,10 +28,7 @@ export default function MyOrders({ accessToken, onLogout }) {
     const controller = new AbortController();
     let timer;
 
-    setStatus("loading");
-    setMessage("");
-    setOrders([]);
-
+   
     async function loadOrders() {
       let shouldRefresh = true;
 
@@ -136,7 +133,11 @@ export default function MyOrders({ accessToken, onLogout }) {
         <button
           type="button"
           disabled={status === "loading"}
-          onClick={() => setRetryCount((count) => count + 1)}
+          onClick={() => {
+  setStatus("loading");
+  setMessage("");
+  setRetryCount((count) => count + 1);
+}}
         >
           Refresh orders
         </button>
