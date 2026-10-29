@@ -41,8 +41,12 @@ const orderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-
+        requestId: {
+      type: String,
+      maxlength: 36,
+    },
     items: {
+         
       type: [orderItemSchema],
       required: true,
       validate: {
@@ -107,5 +111,14 @@ const orderSchema = new mongoose.Schema(
 );
 
 orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index(
+  { user: 1, requestId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      requestId: { $type: "string" },
+    },
+  }
+);
 
 module.exports = mongoose.model("Order", orderSchema);
