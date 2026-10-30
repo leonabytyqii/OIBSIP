@@ -6,11 +6,14 @@ Developed by Leona Bytyqi.
 
 ## About
 
-Pizza Delivery allows users to create an account, verify their email,
-log in and build a pizza by choosing its ingredients.
+Pizza Delivery allows customers to register, verify their email,
+log in and build a pizza by choosing ingredients.
 
-Administrators can manage ingredient stock, change low-stock alert
-thresholds and receive email notifications when supplies are low.
+Customers can review the total, save an order awaiting payment
+and view their order history.
+
+Administrators can update ingredient stock, change low-stock thresholds
+and receive scheduled email alerts.
 
 Prices are displayed in euros (EUR).
 
@@ -27,7 +30,7 @@ Prices are displayed in euros (EUR).
 
 ## Implemented features
 
-- User registration and email verification
+- Registration and email verification
 - Login and protected API routes
 - Password recovery by email
 - Separate customer and administrator login pages
@@ -35,26 +38,34 @@ Prices are displayed in euros (EUR).
 - Step-by-step pizza builder
 - One base, one sauce and one cheese per pizza
 - Optional selection of multiple vegetables
-- Order summary with prices calculated by the backend
+- Prices calculated by the backend
+- Saving orders with an awaiting-payment status
+- Customer order history with automatic refresh
 - Administrator inventory dashboard
 - Manual stock updates
 - Configurable low-stock thresholds
 - Scheduled low-stock email notifications
+- Administrator interface and API for managing paid-order statuses
 - Responsive layout for desktop and mobile screens
 
 ## Work in progress
 
-Payment integration is not complete.
+Razorpay payment integration is not complete. Clarification has been
+requested from Oasis Infobyte because Kosovo is not listed in the
+Razorpay registration country selection.
 
-Order creation, payment confirmation and automatic stock deduction
-still need to be connected and tested together.
+Saving a pending order and displaying it in customer order history
+have been tested.
 
-Customer order history and administrator order-management screens
-are present, but the complete paid-order flow has not yet been tested.
+Payment confirmation and automatic stock deduction are not connected yet.
+Saving a pending order does not reserve or deduct stock.
+
+The administrator status-management code is present, but the complete
+paid-order lifecycle still requires integration and testing.
 
 ## Project folders
 
-- `backend`: API, database models, authentication and email utilities
+- `backend`: API, database models, authentication, scripts and email utilities
 - `frontend`: React application and styles
 
 ## Local setup
@@ -62,7 +73,7 @@ are present, but the complete paid-order flow has not yet been tested.
 ### Requirements
 
 - Node.js and npm
-- A MongoDB database accessible from the development computer
+- An accessible MongoDB database
 - A Gmail account with an App Password for sending emails
 
 ### Download the project
@@ -75,34 +86,34 @@ cd OIBSIP/WebDev-L3-PizzaDelivery
 ### Backend configuration
 
 Copy `backend/.env.example` to `backend/.env`.
-Replace the example values with your own configuration.
 
-Add the following variables and replace the example values with
-your own configuration:
+Replace the placeholders with your own configuration:
 
 ```dotenv
 PORT=5000
+
 MONGO_URI=mongodb+srv://YOUR_CLUSTER_HOST/
 MONGO_USER=YOUR_DATABASE_USERNAME
 MONGO_PASSWORD=YOUR_DATABASE_PASSWORD
+
 JWT_SECRET=YOUR_LONG_RANDOM_SECRET
+
 GMAIL_USER=YOUR_GMAIL_ADDRESS
 GMAIL_APP_PASSWORD=YOUR_GMAIL_APP_PASSWORD
 ADMIN_ALERT_EMAIL=YOUR_ADMIN_EMAIL_ADDRESS
 ```
 
-`MONGO_USER` and `MONGO_PASSWORD` are database-user credentials.
+- `MONGO_USER` and `MONGO_PASSWORD` are database-user credentials.
+- `JWT_SECRET` is a long random secret used to sign access tokens.
+- `GMAIL_APP_PASSWORD` is a Gmail App Password, not your normal Gmail password.
+- `ADMIN_ALERT_EMAIL` receives low-stock notifications.
 
-`GMAIL_APP_PASSWORD` is a Gmail App Password, not the normal
-password used to sign in to Gmail.
-
-`ADMIN_ALERT_EMAIL` is the address that receives stock alerts.
-
-Never commit your real `.env` file or credentials.
+Keep real credentials in `backend/.env`.
+Never commit that file or include real passwords in this README.
 
 ### Start the backend
 
-Open a terminal in the project folder:
+From the project folder:
 
 ```bash
 cd backend
@@ -110,23 +121,19 @@ npm ci
 npm start
 ```
 
-The backend runs at:
+The API runs at `http://localhost:5000`.
 
-```text
-http://localhost:5000
-```
-
-To restart the backend automatically when its code changes:
+For automatic restart during development, use this instead of `npm start`:
 
 ```bash
 npm run dev
 ```
 
-Use one backend process at a time.
+Run only one backend process at a time.
 
 ### Start the frontend
 
-Open a second terminal in the project folder:
+Open another terminal in the project folder:
 
 ```bash
 cd frontend
@@ -134,16 +141,12 @@ npm ci
 npm run dev -- --port 5173 --strictPort
 ```
 
-Open:
+Open `http://localhost:5173`.
 
-```text
-http://localhost:5173
-```
+Keep both servers running while using the application.
 
-Keep both terminals running while using the application.
-
-The current configuration uses localhost URLs, so open the
-application on the same computer that runs the servers.
+The current configuration uses localhost URLs. Open the application
+on the same computer that runs the servers.
 
 ## Pages
 
@@ -151,20 +154,19 @@ application on the same computer that runs the servers.
 | --- | --- |
 | `/` | Customer login |
 | `/login` | Customer login |
-| `/register` | Create a customer account |
-| `/verify-email` | Verify an email using the emailed link |
+| `/register` | Customer registration |
+| `/verify-email` | Email verification |
 | `/forgot-password` | Request a password reset |
 | `/reset-password` | Set a new password using the emailed link |
 | `/admin/login` | Administrator login |
 
-Registration creates customer accounts. Administrator access
-requires an account with the administrator role.
+Public registration creates customer accounts.
+Administrator access requires an account with the administrator role.
 
 ## Database initialization
 
-After configuring `backend/.env` and installing the backend
-dependencies, run these commands from the `backend` folder,
-one at a time:
+After configuring `backend/.env` and installing backend dependencies,
+run these commands from the `backend` folder, one at a time:
 
 ```bash
 node scripts/seedIngredients.js
@@ -172,68 +174,95 @@ node scripts/seedIngredientPrices.js
 node scripts/seedPizzas.js
 ```
 
-Continue to the next command only if the previous command succeeds.
+Continue only if the previous command succeeds.
 
-- `seedIngredients.js` adds 19 ingredients that do not already
-  exist. New ingredients start with stock 50 and alert threshold 20.
+- `seedIngredients.js` adds 19 ingredients that do not already exist.
+  New ingredients start with stock 50 and alert threshold 20.
   Existing ingredients are left unchanged.
-- `seedIngredientPrices.js` sets the ingredient prices in euro
-  cents. Running it again overwrites existing prices with the
-  values defined in the script.
-- `seedPizzas.js` adds three menu pizzas: Margherita, Veggie and
-  Pepperoni. Existing pizzas are left unchanged.
+- `seedIngredientPrices.js` updates prices in euro cents.
+  Running it again overwrites prices with the values in the script.
+- `seedPizzas.js` adds Margherita, Veggie and Pepperoni.
+  Existing menu pizzas are left unchanged.
 
 ## Administrator account setup
 
 1. Start the backend and frontend.
-2. Create an account at `http://localhost:5173/register`.
-3. Verify the account using the link sent by email.
-4. Open a separate terminal in the `backend` folder and run:
+2. Register an account at `http://localhost:5173/register`.
+3. Verify the account using the emailed link.
+4. Open a separate terminal in the `backend` folder.
+5. Run the following command with the verified account's email:
 
 ```bash
 node scripts/makeAdmin.js "admin@example.com"
 ```
 
-Replace `admin@example.com` with the email address of the verified
-account you want to promote.
+Replace `admin@example.com` with the intended administrator's email.
 
-The script requires an existing, verified account. It changes the
-role to administrator and increments the token version to invalidate
-previous access tokens. It does not change the password.
+The script promotes an existing verified account. It increments the
+token version to invalidate previous access tokens.
+It does not create an account or change its password.
 
-Log out if necessary, then sign in at:
+Log out, then sign in at `http://localhost:5173/admin/login`.
 
-```text
-http://localhost:5173/admin/login
-```
+Use the email and password chosen when registering the application account.
 
-Use the same email address and application password chosen during
-registration.
+Only promote accounts that should have administrator access.
 
-Run this script only for accounts that should have administrator
-access. Public registration always creates customer accounts.
 ## Low-stock alerts
 
-Each ingredient has its own alert threshold.
+Each ingredient has a configurable alert threshold.
 
-For example, if the threshold is 10:
+For a threshold of 10:
 
 - Stock of 10 is not below the threshold.
 - Stock of 9 is considered low.
 
-The backend checks for low stock every minute. It must remain
-running for scheduled checks to take place.
+The backend checks for low stock every minute.
+It must remain running for scheduled checks to take place.
+
+## Orders
+
+Customers can select ingredients, review the total and save an order.
+
+New orders have:
+
+- Order status: `awaiting_payment`
+- Payment status: `pending`
+- Stock deducted: `false`
+
+The server calculates prices from the database.
+
+Each creation request uses a request ID. Repeating the same request
+with the same ID returns the existing order rather than creating another.
+
+Customers can view their latest 50 orders under My orders.
+The list refreshes automatically every 10 seconds.
+
+The administrator interface is intended to manage paid orders
+whose stock has been deducted, with this progression:
+
+```text
+Order received → In kitchen → Sent to delivery
+```
+
+Pending orders are not shown in the paid-order management list.
+
+Payment confirmation, stock deduction and the complete status progression
+still need to be connected and tested together.
 
 ## Frontend checks
 
-Run these commands inside `frontend`:
+Run these commands from the `frontend` folder:
 
 ```bash
-npm run build
 npm run lint
+npm run build
 ```
 
-The build command creates the production frontend in `dist`.
+Both checks passed during development.
+
+The build command generates frontend production files inside `dist`.
+These checks do not verify the complete backend or payment flow.
 
 ## Manual checks completed during development
 
@@ -242,14 +271,28 @@ The build command creates the production frontend in `dist`.
 - Password recovery
 - Pizza ingredient selection and price summary
 - Inventory stock updates
-- Saving a changed alert threshold
+- Saving a changed low-stock threshold
 - Receiving a low-stock email with stock 9 and threshold 10
 - Mobile layout at 390 × 844
-- Horizontal scrolling of the inventory table on a small screen
+- Horizontal inventory-table scrolling on a small screen
+- Saving a pending order
+- Displaying the saved order in customer order history
 
-Payment and the complete order lifecycle remain pending.
+## Remaining checks
+
+- Confirm order persistence after logging out and signing in again
+- Verify that separate customer accounts cannot see each other's orders
+- Test repeated order-creation requests
+- Integrate and test the approved payment solution
+- Implement and test automatic stock deduction without double deduction
+- Test the complete customer and administrator order lifecycle
 
 ## Project status
 
-This project is under development. Setup instructions and testing
-notes will be updated as the remaining features are completed.
+This project is under development.
+
+Authentication, pizza selection, inventory management, low-stock alerts
+and pending-order creation are implemented.
+
+Payment integration, automatic stock deduction and testing of the complete
+paid-order lifecycle remain unfinished.
