@@ -41,12 +41,25 @@ const orderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-        requestId: {
+
+    requestId: {
       type: String,
       maxlength: 36,
     },
+
+    razorpayOrderId: {
+      type: String,
+      maxlength: 100,
+      match: /^order_[a-zA-Z0-9]+$/,
+    },
+
+    razorpayPaymentId: {
+      type: String,
+      maxlength: 100,
+      match: /^pay_[a-zA-Z0-9]+$/,
+    },
+
     items: {
-         
       type: [orderItemSchema],
       required: true,
       validate: {
@@ -87,6 +100,7 @@ const orderSchema = new mongoose.Schema(
       type: String,
       enum: [
         "awaiting_payment",
+        "payment_review",
         "order_received",
         "in_kitchen",
         "sent_to_delivery",
@@ -111,12 +125,33 @@ const orderSchema = new mongoose.Schema(
 );
 
 orderSchema.index({ user: 1, createdAt: -1 });
+
 orderSchema.index(
   { user: 1, requestId: 1 },
   {
     unique: true,
     partialFilterExpression: {
       requestId: { $type: "string" },
+    },
+  }
+);
+
+orderSchema.index(
+  { razorpayOrderId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      razorpayOrderId: { $type: "string" },
+    },
+  }
+);
+
+orderSchema.index(
+  { razorpayPaymentId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      razorpayPaymentId: { $type: "string" },
     },
   }
 );

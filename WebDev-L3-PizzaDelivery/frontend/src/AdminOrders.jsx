@@ -4,6 +4,7 @@ const statusLabels = {
   order_received: "Order received",
   in_kitchen: "In kitchen",
   sent_to_delivery: "Sent to delivery",
+  payment_review: "Payment received — stock review required",
 };
 
 const nextStatuses = {

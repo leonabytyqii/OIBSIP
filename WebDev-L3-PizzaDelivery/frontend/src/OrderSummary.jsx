@@ -219,9 +219,9 @@ export default function OrderSummary({
 
         {savedOrder.paymentStatus === "pending" && (
           <p>
-            Awaiting payment. No payment has been taken.
-            Payment integration is not available yet.
-          </p>
+  Your order has been saved. Check My orders below for its current
+  payment and delivery status.
+</p>
         )}
 
         <p>

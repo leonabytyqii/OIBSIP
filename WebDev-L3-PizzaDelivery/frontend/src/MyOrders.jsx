@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import RazorpayPayment from "./RazorpayPayment";
 
 const orderStatuses = {
   awaiting_payment: "Awaiting payment",
+  payment_review: "Payment received — stock review required",
   order_received: "Order received",
   in_kitchen: "In kitchen",
   sent_to_delivery: "Sent to delivery",
@@ -28,7 +30,6 @@ export default function MyOrders({ accessToken, onLogout }) {
     const controller = new AbortController();
     let timer;
 
-   
     async function loadOrders() {
       let shouldRefresh = true;
 
@@ -84,7 +85,9 @@ export default function MyOrders({ accessToken, onLogout }) {
           );
 
         if (!validOrders) {
-          throw new Error("The server returned an invalid order list.");
+          throw new Error(
+            "The server returned an invalid order list."
+          );
         }
 
         setOrders(data.orders);
@@ -117,7 +120,10 @@ export default function MyOrders({ accessToken, onLogout }) {
   return (
     <section className="my-orders">
       <h2>My orders</h2>
-      <p>Your latest 50 orders. Updates automatically every 10 seconds.</p>
+
+      <p>
+        Your latest 50 orders. Updates automatically every 10 seconds.
+      </p>
 
       {status === "loading" && (
         <p role="status">Loading your orders...</p>
@@ -134,10 +140,10 @@ export default function MyOrders({ accessToken, onLogout }) {
           type="button"
           disabled={status === "loading"}
           onClick={() => {
-  setStatus("loading");
-  setMessage("");
-  setRetryCount((count) => count + 1);
-}}
+            setStatus("loading");
+            setMessage("");
+            setRetryCount((count) => count + 1);
+          }}
         >
           Refresh orders
         </button>
@@ -148,13 +154,17 @@ export default function MyOrders({ accessToken, onLogout }) {
       )}
 
       {status === "error" && orders.length > 0 && (
-        <p>Showing the last loaded orders. Statuses may be outdated.</p>
+        <p>
+          Showing the last loaded orders. Statuses may be outdated.
+        </p>
       )}
 
       <div className="orders-list">
         {orders.map((order) => (
           <article className="order-card" key={order.id}>
-            <h3>Order #{order.id.slice(-8).toUpperCase()}</h3>
+            <h3>
+              Order #{order.id.slice(-8).toUpperCase()}
+            </h3>
 
             <p>
               Date: {new Date(order.createdAt).toLocaleString()}
@@ -182,6 +192,18 @@ export default function MyOrders({ accessToken, onLogout }) {
                 Total: {euroFormatter.format(order.totalMinor / 100)}
               </strong>
             </p>
+
+            {(
+              order.paymentStatus === "pending" ||
+              order.status === "payment_review"
+            ) && (
+              <RazorpayPayment
+                key={order.id}
+                order={order}
+                accessToken={accessToken}
+                onLogout={onLogout}
+              />
+            )}
           </article>
         ))}
       </div>

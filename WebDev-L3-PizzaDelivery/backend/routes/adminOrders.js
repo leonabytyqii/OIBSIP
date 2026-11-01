@@ -38,17 +38,20 @@ function serializeOrder(order) {
 
 router.get("/", async (req, res) => {
   try {
-    const orders = await Order.find({
-      paymentStatus: "paid",
-      stockDeducted: true,
-    })
-      .select(
-        "user items currency totalMinor paymentStatus status createdAt updatedAt"
-      )
-      .populate("user", "name email")
-      .sort({ createdAt: -1, _id: -1 })
-      .limit(100)
-      .lean();
+const orders = await Order.find({
+  paymentStatus: "paid",
+  $or: [
+    { stockDeducted: true },
+    { status: "payment_review" },
+  ],
+})
+  .select(
+    "user items currency totalMinor paymentStatus status createdAt updatedAt"
+  )
+  .populate("user", "name email")
+  .sort({ createdAt: -1, _id: -1 })
+  .limit(100)
+  .lean();
 
     return res.status(200).json({
       orders: orders.map(serializeOrder),

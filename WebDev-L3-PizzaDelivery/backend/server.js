@@ -16,6 +16,8 @@ app.use(cors({
 }));
 
 app.use(express.json());
+const paymentRoutes = require("./routes/payments");
+app.use("/api/payments", paymentRoutes);
 
 const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
