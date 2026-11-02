@@ -164,6 +164,9 @@ computer that runs the servers.
   Open the frontend at `localhost:5173` to use the application.
 - If `localhost:5173` refuses the connection, check that the frontend development
   server is running in its own terminal.
+- If backend startup reports `EADDRINUSE` on port `5000`, another process is
+  already using that port. Stop the existing backend with Ctrl+C in its terminal,
+  then start one backend process.
 
 ## Pages
 
@@ -297,8 +300,8 @@ When stock is available, the backend deducts it and changes the order to
 `order_received`. Another payment is not required.
 
 The application does not currently provide an administrator button to
-retry confirmation or issue a refund. The stock-review recovery scenario
-still needs an end-to-end manual test.
+retry confirmation or issue a refund. Recovery after restocking has been
+manually tested using the customer's Check payment status button.
 
 ### Administrator order statuses
 
@@ -392,25 +395,44 @@ These checks do not verify the complete backend or payment flow.
 - Displaying Paid and Order received after confirmation
 - Showing confirmed orders in the administrator list
 - Administrator progression from Order received to In kitchen to Sent to delivery
-- Customer order status updating to In kitchen
+- Customer order status updating to In kitchen and Sent to delivery
 - Failed test payment leaving stock unchanged
 - Successful retry deducting one stock unit from the checked ingredients
+- Customer order history and paid statuses persisting after logout and login
+- A separate customer account displaying none of the first customer's orders
+- Stock becoming unavailable after checkout opens, followed by a captured test payment
+- Paid stock-review orders appearing in both customer and administrator lists
+- No partial ingredient deduction while an order requires stock review
+- Restocking and confirming the same review order without another payment
+- Two sequential payment-status checks on a confirmed order leaving stock unchanged
 
 During the failure-and-retry check, Thick Crust stayed at 50 and Tomato
 stayed at 49 after failure. After the successful retry, their quantities
 were 49 and 48 respectively.
 
+During the stock-review check, Classic was set to 0 after checkout opened.
+After payment, the order showed Paid and stock review required. Classic
+remained at 0, Tomato at 48 and Mozzarella at 49. After Classic was restocked
+to 50, Check payment status confirmed the same order. The quantities became
+Classic 49, Tomato 47 and Mozzarella 48.
+
+Two subsequent sequential requests to `POST /api/payments/check` returned
+`verified: true`, `paymentStatus: paid`, `stockDeducted: true` and
+`status: order_received`. Reloading inventory showed:
+
+| Ingredient | Before repeated checks | After repeated checks |
+| --- | --- | --- |
+| Classic | 49 | 49 |
+| Tomato | 47 | 47 |
+| Mozzarella | 48 | 48 |
+
+This check covered sequential repeats on an already confirmed order.
+
 ## Remaining checks
 
-- Confirm customer order history after logging out and signing in again.
-- Verify that separate customer accounts cannot read or pay each other's orders.
+- Test cross-account payment requests directly against the API, beyond the
+  customer-history isolation check completed in the interface.
 - Test repeated order-creation requests against the running API.
-- Repeat payment confirmation and confirm that stock is deducted only once.
-- Verify the final Sent to delivery status in the customer's order list.
-- Simulate stock becoming unavailable after checkout opens, then verify
-  `payment_review`, administrator visibility and no partial stock deduction.
-- Restock a review order, use Check payment status and verify recovery
-  without another payment or duplicate stock deduction.
 - Test interrupted confirmation and concurrent confirmation requests.
 - Verify setup from a fresh clone using only the documented configuration.
 
@@ -432,6 +454,7 @@ Authentication, pizza selection, inventory management, low-stock alerts,
 Razorpay test payments, automatic stock deduction and administrator order
 progression are implemented.
 
-The main local test-payment flow has been exercised. The edge cases listed
-above remain to be verified before the final project hand-in. The project
-is a local internship demonstration and has not been validated for live payments.
+The main local test-payment flow, stock-review recovery, customer status
+updates and repeated payment-status checks have been exercised. The
+remaining checks listed above have not yet been completed. The project is
+a local internship demonstration and has not been validated for live payments.

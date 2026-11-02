@@ -197,7 +197,7 @@ export default function AdminOrders({ accessToken, onLogout }) {
   return (
     <section className="my-orders">
       <h2>Manage orders</h2>
-      <p>Latest 100 paid orders ready for preparation or delivery.</p>
+      <p>Latest 100 paid orders, including orders awaiting stock review.</p>
 
       {status === "loading" && (
         <p role="status">Loading orders...</p>
