@@ -1,55 +1,36 @@
-/* Ngjyrat dhe pamja kryesore */
-:root {
-  font-family: Arial, Helvetica, sans-serif;
-  color: #29241f;
-  background: #fff8f0;
-  color-scheme: light;
-  font-synthesis: none;
-  line-height: 1.6;
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-body {
-  display: block;
-  min-width: 320px;
-  min-height: 100vh;
-  margin: 0;
+:root body {
   color: #29241f;
   background: #fff8f0;
 }
 
 #root {
   width: 100%;
-  max-width: none;
   min-height: 100vh;
-  margin: 0;
-  padding: 32px 20px;
-  text-align: left;
+  padding: 36px 20px;
 }
 
 .card {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 36px;
+  padding: 32px;
   background: #ffffff;
   border: 1px solid #eaded1;
-  border-radius: 20px;
-  box-shadow: 0 8px 30px rgb(74 42 15 / 7%);
+  border-radius: 24px;
+  box-shadow: 0 20px 55px rgb(74 42 15 / 7%);
 }
 
 .card > h1 {
-  margin: 0 0 28px;
-  padding-bottom: 20px;
+  margin: -32px -32px 28px;
+  padding: 30px 32px 28px;
   border-bottom: 2px solid #f5e6d8;
+  border-radius: 23px 23px 0 0;
   color: #a63516;
-  font-size: clamp(1.8rem, 4vw, 2.5rem);
-  line-height: 1.2;
+  background: #ffffff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.95rem, 5vw, 3.1rem);
+  line-height: 1.13;
+  letter-spacing: -0.025em;
 }
 
 h2,
@@ -60,6 +41,8 @@ h3 {
 
 h2 {
   margin: 24px 0 12px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.45rem, 3vw, 1.85rem);
 }
 
 h3 {
@@ -72,7 +55,7 @@ p {
 
 a {
   color: #a63516;
-  text-decoration: underline;
+  font-weight: 600;
   text-underline-offset: 3px;
 }
 
@@ -80,25 +63,17 @@ a:hover {
   color: #76230d;
 }
 
-/* Butonat dhe fushat */
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-
 button {
   min-height: 44px;
-  padding: 11px 20px;
+  padding: 10px 18px;
   border: 1px solid #a63516;
-  border-radius: 10px;
-  color: #ffffff;
+  border-radius: 999px;
+  color: #fff;
   background: #a63516;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.4;
   cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
+  transition: background-color 160ms ease, border-color 160ms ease;
 }
 
 button:hover:not(:disabled) {
@@ -116,11 +91,11 @@ select,
 textarea {
   min-height: 44px;
   max-width: 100%;
-  padding: 11px 12px;
+  padding: 10px 12px;
   border: 1px solid #9a8e83;
-  border-radius: 8px;
+  border-radius: 10px;
   color: #29241f;
-  background: #ffffff;
+  background: #fff;
 }
 
 input::placeholder,
@@ -149,17 +124,24 @@ textarea:focus-visible {
   outline-offset: 3px;
 }
 
-/* Login, regjistrimi dhe rikuperimi */
+.card:has(.auth-form) {
+  text-align: center;
+}
+
 .auth-form {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   margin: 24px auto;
+  padding: clamp(16px, 4vw, 28px);
+  border: 1px solid #eaded1;
+  border-radius: 18px;
+  background: #fff8f0;
   text-align: left;
 }
 
 .auth-form fieldset {
   display: grid;
-  gap: 20px;
+  gap: 18px;
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -169,7 +151,8 @@ textarea:focus-visible {
 .auth-form label {
   display: grid;
   gap: 7px;
-  font-weight: 600;
+  min-width: 0;
+  font-weight: 650;
 }
 
 .auth-form input,
@@ -181,39 +164,45 @@ textarea:focus-visible {
   font-weight: 400;
 }
 
-p[role="alert"] {
+p[role="alert"],
+p[role="status"] {
   padding: 12px 14px;
-  border: 1px solid #efc4be;
-  border-radius: 8px;
+  border: 1px solid;
+  border-left-width: 4px;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+
+p[role="alert"] {
+  border-color: #efc4be;
+  border-left-color: #8f2419;
   color: #8f2419;
   background: #fff2ef;
-  overflow-wrap: anywhere;
 }
 
 p[role="status"] {
-  padding: 12px 14px;
-  border: 1px solid #d6dfe8;
-  border-radius: 8px;
+  border-color: #d6dfe8;
+  border-left-color: #334155;
   color: #334155;
   background: #f3f6fa;
-  overflow-wrap: anywhere;
 }
 
-/* Paneli dhe menuja */
 .dashboard {
   width: 100%;
   min-width: 0;
-  margin: 0 auto;
-  text-align: left;
 }
 
 .dashboard-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
   gap: 16px;
-  margin-bottom: 28px;
+  margin-bottom: 26px;
+  padding: 16px 20px;
+  border: 1px solid #eaded1;
+  border-radius: 16px;
+  background: #fff8f0;
 }
 
 .dashboard-header h2 {
@@ -238,26 +227,33 @@ p[role="status"] {
 .pizza-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-  gap: 20px;
+  gap: 18px;
 }
 
 .pizza-card {
   min-width: 0;
-  padding: 24px;
+  padding: 22px;
   border: 1px solid #eaded1;
-  border-radius: 16px;
+  border-top: 4px solid #e78953;
+  border-radius: 18px;
   background: #fffaf5;
+  box-shadow: 0 6px 16px rgb(74 42 15 / 6%);
   overflow-wrap: anywhere;
 }
 
 .pizza-icon {
-  display: inline-block;
-  font-size: 48px;
-  line-height: 1.2;
+  display: inline-grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 16px;
+  background: #fff0e5;
+  font-size: 36px;
+  line-height: 1;
 }
 
 .pizza-card h3 {
-  margin: 16px 0 8px;
+  margin: 14px 0 8px;
 }
 
 .pizza-card p {
@@ -265,12 +261,18 @@ p[role="status"] {
   color: #6b5b4d;
 }
 
-/* Ndertimi i pices */
 .pizza-builder,
 .my-orders {
-  margin-top: 36px;
-  padding-top: 24px;
-  border-top: 1px solid #eaded1;
+  margin-top: 32px;
+  padding: clamp(16px, 3vw, 26px);
+  border: 1px solid #eaded1;
+  border-radius: 18px;
+  background: #fffaf5;
+}
+
+.pizza-builder > h2,
+.my-orders > h2 {
+  margin-top: 0;
 }
 
 .ingredient-options {
@@ -278,15 +280,16 @@ p[role="status"] {
   gap: 10px;
   min-width: 0;
   margin: 20px 0;
-  padding: 20px;
-  border: 1px solid #d9c8b8;
-  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #eaded1;
+  border-radius: 14px;
+  background: #ffffff;
 }
 
 .ingredient-options legend {
   max-width: 100%;
   padding: 0 8px;
-  color: #35271e;
+  color: #7d260e;
   font-weight: 700;
 }
 
@@ -295,11 +298,16 @@ p[role="status"] {
   align-items: center;
   gap: 12px;
   min-height: 48px;
-  padding: 12px;
-  border-radius: 8px;
-  background: #fff8f0;
-  text-align: left;
+  padding: 11px 12px;
+  border: 1px solid #eaded1;
+  border-radius: 10px;
+  background: #fff;
   overflow-wrap: anywhere;
+}
+
+.ingredient-option:has(input:checked) {
+  border-color: #a63516;
+  background: #fff8f0;
 }
 
 .ingredient-option input {
@@ -314,7 +322,6 @@ p[role="status"] {
   margin-top: 20px;
 }
 
-/* Permbledhja e cmimit */
 .order-summary-list {
   list-style: none;
   margin: 20px 0;
@@ -332,20 +339,23 @@ p[role="status"] {
 }
 
 .order-total {
-  color: #a63516;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: #7d260e;
+  background: #fff0e5;
   font-size: 1.3rem;
-  font-weight: 700;
+  font-weight: 750;
   text-align: right;
 }
 
-/* Inventari i administratorit */
 .inventory-table-wrapper {
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
   margin-top: 20px;
   border: 1px solid #eaded1;
-  border-radius: 12px;
+  border-radius: 14px;
+  background: #ffffff;
 }
 
 .inventory-table {
@@ -356,7 +366,7 @@ p[role="status"] {
 
 .inventory-table th,
 .inventory-table td {
-  padding: 14px 16px;
+  padding: 13px 14px;
   border-bottom: 1px solid #eaded1;
   vertical-align: middle;
 }
@@ -398,18 +408,19 @@ p[role="status"] {
   font-size: 0.9rem;
 }
 
-/* Porosite */
 .orders-list {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   margin-top: 20px;
 }
 
 .order-card {
   min-width: 0;
-  padding: 22px;
+  padding: 20px;
   border: 1px solid #eaded1;
-  border-radius: 12px;
+  border-left: 4px solid #a63516;
+  border-radius: 14px;
   background: #fffaf5;
   overflow-wrap: anywhere;
 }
@@ -419,40 +430,48 @@ p[role="status"] {
 }
 
 .order-card button {
+  max-width: 100%;
   margin-top: 8px;
 }
 
-/* Pershtatja per telefon */
+@media (max-width: 760px) {
+  .orders-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 600px) {
   #root {
-    padding: 14px 10px;
+    padding: 12px 10px;
   }
 
   .card {
-    padding: 20px 16px;
-    border-radius: 14px;
+    padding: 16px;
+    border-radius: 16px;
   }
 
   .card > h1 {
-    margin-bottom: 22px;
-    padding-bottom: 16px;
+    margin: -16px -16px 20px;
+    padding: 22px 16px;
+    border-radius: 15px 15px 0 0;
   }
 
   .dashboard-header {
     align-items: flex-start;
+    padding: 14px;
   }
 
   .pizza-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .pizza-card,
   .order-card {
-    padding: 18px;
+    padding: 16px;
   }
 
   .ingredient-options {
-    padding: 14px 10px;
+    padding: 12px 10px;
   }
 
   .ingredient-option {
@@ -476,5 +495,74 @@ p[role="status"] {
 @media (prefers-reduced-motion: reduce) {
   button {
     transition: none;
+  }
+}
+
+@media (min-width: 601px) {
+  .inventory-table {
+    font-size: 0.92rem;
+  }
+
+  .inventory-table th,
+  .inventory-table td {
+    padding: 8px 12px;
+  }
+
+  .inventory-table .stock-form input {
+    width: 78px;
+    min-width: 78px;
+    min-height: 36px;
+    padding: 5px 9px;
+  }
+
+  .inventory-table .stock-form button {
+    min-height: 36px;
+    padding: 5px 12px;
+  }
+}
+
+/* Keep the administrator's order list compact. */
+.card:has(.inventory-table-wrapper) .my-orders {
+  padding: clamp(14px, 2vw, 20px);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.card:has(.inventory-table-wrapper) .my-orders > h2 {
+  margin-bottom: 8px;
+  font-size: clamp(1.35rem, 2.5vw, 1.6rem);
+}
+
+.card:has(.inventory-table-wrapper) .my-orders .orders-list {
+  --admin-order-gap: 12px;
+  gap: var(--admin-order-gap);
+  margin-top: 14px;
+}
+
+.card:has(.inventory-table-wrapper) .my-orders .order-card {
+  padding: 14px 16px;
+}
+
+.card:has(.inventory-table-wrapper) .my-orders .order-card h3 {
+  margin-bottom: 8px;
+  font-size: 1.05rem;
+}
+
+.card:has(.inventory-table-wrapper) .my-orders p {
+  margin: 6px 0;
+}
+
+@media (min-width: 601px) {
+  .card:has(.inventory-table-wrapper) .my-orders button {
+    min-height: 36px;
+    padding: 6px 13px;
+  }
+}
+
+@media (width > 760px) {
+  .card:has(.inventory-table-wrapper) .my-orders .orders-list > .order-card:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    width: calc((100% - var(--admin-order-gap)) / 2);
+    justify-self: center;
   }
 }

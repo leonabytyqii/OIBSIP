@@ -109,6 +109,11 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
 
+    adminArchivedAt: {
+      type: Date,
+      default: null,
+    },
+
     paidAt: {
       type: Date,
       default: null,

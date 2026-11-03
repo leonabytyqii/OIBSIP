@@ -33,25 +33,34 @@ function serializeOrder(order) {
     status: order.status,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
+    adminArchivedAt: order.adminArchivedAt ?? null,
   };
 }
 
 router.get("/", async (req, res) => {
   try {
-const orders = await Order.find({
-  paymentStatus: "paid",
-  $or: [
-    { stockDeducted: true },
-    { status: "payment_review" },
-  ],
-})
-  .select(
-    "user items currency totalMinor paymentStatus status createdAt updatedAt"
-  )
-  .populate("user", "name email")
-  .sort({ createdAt: -1, _id: -1 })
-  .limit(100)
-  .lean();
+    const view = req.query.view ?? "active";
+
+    if (view !== "active" && view !== "archived") {
+      return res.status(400).json({ message: "Invalid order view." });
+    }
+
+    const archived = view === "archived";
+    const orders = await Order.find({
+      paymentStatus: "paid",
+      adminArchivedAt: archived ? { $type: "date" } : null,
+      $or: [
+        { stockDeducted: true },
+        { status: "payment_review" },
+      ],
+    })
+      .select(
+        "user items currency totalMinor paymentStatus status createdAt updatedAt adminArchivedAt"
+      )
+      .populate("user", "name email")
+      .sort(archived ? { adminArchivedAt: -1, _id: -1 } : { createdAt: -1, _id: -1 })
+      .limit(100)
+      .lean();
 
     return res.status(200).json({
       orders: orders.map(serializeOrder),
@@ -95,6 +104,7 @@ router.patch("/:id/status", async (req, res) => {
         paymentStatus: "paid",
         stockDeducted: true,
         status: expectedStatus,
+        adminArchivedAt: null,
       },
       {
         $set: { status },
@@ -105,7 +115,7 @@ router.patch("/:id/status", async (req, res) => {
       }
     )
       .select(
-        "user items currency totalMinor paymentStatus status createdAt updatedAt"
+        "user items currency totalMinor paymentStatus status createdAt updatedAt adminArchivedAt"
       )
       .populate("user", "name email")
       .lean();
@@ -129,6 +139,53 @@ router.patch("/:id/status", async (req, res) => {
 
     return res.status(500).json({
       message: "Unable to update the order. Please refresh orders.",
+    });
+  }
+});
+
+router.patch("/:id/archive", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { archived } = req.body || {};
+
+    if (!/^[a-f0-9]{24}$/i.test(id)) {
+      return res.status(400).json({ message: "Invalid order ID." });
+    }
+
+    if (typeof archived !== "boolean") {
+      return res.status(400).json({ message: "Expected an archived boolean." });
+    }
+
+    const order = await Order.findOneAndUpdate(
+      {
+        _id: id,
+        paymentStatus: "paid",
+        stockDeducted: true,
+        status: "sent_to_delivery",
+        adminArchivedAt: archived ? null : { $type: "date" },
+      },
+      { $set: { adminArchivedAt: archived ? new Date() : null } },
+      { returnDocument: "after", runValidators: true, timestamps: false }
+    )
+      .select("_id")
+      .lean();
+
+    if (!order) {
+      const exists = await Order.exists({ _id: id });
+
+      return res.status(exists ? 409 : 404).json({
+        message: exists
+          ? "This order is not eligible or its archive state changed. Refresh orders."
+          : "Order not found.",
+      });
+    }
+
+    return res.status(200).json({ id: order._id.toString(), archived });
+  } catch (error) {
+    console.error("Change order archive state:", error.message);
+
+    return res.status(500).json({
+      message: "Unable to change the archive state. Please refresh orders.",
     });
   }
 });
