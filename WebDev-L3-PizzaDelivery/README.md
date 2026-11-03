@@ -405,6 +405,10 @@ These checks do not verify the complete backend or payment flow.
 - No partial ingredient deduction while an order requires stock review
 - Restocking and confirming the same review order without another payment
 - Two sequential payment-status checks on a confirmed order leaving stock unchanged
+- Another customer's payment-create and payment-check requests returning HTTP 404
+- Repeating an order-creation request with the same request ID returning the same order
+- Recovering a successful test payment after browser confirmation was blocked
+- Two concurrent payment-status checks confirming one pending order with one stock deduction
 
 During the failure-and-retry check, Thick Crust stayed at 50 and Tomato
 stayed at 49 after failure. After the successful retry, their quantities
@@ -428,13 +432,45 @@ Two subsequent sequential requests to `POST /api/payments/check` returned
 
 This check covered sequential repeats on an already confirmed order.
 
-## Remaining checks
+For the API ownership check, a second customer's token was used with an
+order belonging to the first customer. Both `POST /api/payments/create`
+and `POST /api/payments/check` returned HTTP 404 with "Order not found."
 
-- Test cross-account payment requests directly against the API, beyond the
-  customer-history isolation check completed in the interface.
-- Test repeated order-creation requests against the running API.
-- Test interrupted confirmation and concurrent confirmation requests.
-- Verify setup from a fresh clone using only the documented configuration.
+For the order-creation check, two sequential `POST /api/orders` requests
+used the same request ID and ingredient selection. They returned HTTP 201
+and HTTP 200 with the same order ID. Customer history contained exactly
+one new order, initially Pending and Awaiting payment.
+
+For interrupted confirmation, browser requests to the payment-verify and
+payment-check endpoints were blocked. Razorpay Test Mode showed a
+successful payment while the local order remained Pending and Awaiting
+payment. Two `POST /api/payments/check` requests were then started from
+PowerShell before waiting for either response. Both returned HTTP 200,
+`verified: true`, `paymentStatus: paid`, `stockDeducted: true` and
+`status: order_received`. Customer history showed the confirmed order,
+and reloaded administrator inventory showed:
+
+| Ingredient | Before confirmation | After both requests |
+| --- | --- | --- |
+| Classic | 49 | 48 |
+| Tomato | 47 | 46 |
+| Mozzarella | 48 | 47 |
+
+Each selected ingredient decreased by one. This check covered two
+concurrent status-check requests for one initially pending order.
+
+## Fresh clone and dependency checks
+
+The backend and frontend dependencies were installed with `npm ci` from a
+fresh clone. Both servers started using the existing local configuration
+and MongoDB database. Customer login and order history worked, and a
+previously paid order still showed Paid and Order received.
+
+On November 3, 2026, the backend audit reported zero known vulnerabilities.
+The frontend audit initially reported six moderate findings in the ESLint
+dependency tree. After overriding `minimatch` to `11.0.1` for ESLint and
+`@eslint/config-array` in the test clone, the full frontend audit reported
+zero known vulnerabilities, and lint and build passed.
 
 ## Current limitations
 
@@ -454,7 +490,9 @@ Authentication, pizza selection, inventory management, low-stock alerts,
 Razorpay test payments, automatic stock deduction and administrator order
 progression are implemented.
 
-The main local test-payment flow, stock-review recovery, customer status
-updates and repeated payment-status checks have been exercised. The
-remaining checks listed above have not yet been completed. The project is
-a local internship demonstration and has not been validated for live payments.
+The local test-payment flow, stock-review recovery, customer status updates,
+cross-account payment ownership, repeated order creation, interrupted
+confirmation recovery and two concurrent confirmation requests have been
+exercised. Installation and startup from a fresh clone were also checked
+using an existing MongoDB database. The project is a local internship
+demonstration and has not been validated for live payments.
